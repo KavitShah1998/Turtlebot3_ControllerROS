@@ -208,5 +208,7 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(pid_controller_node src/controller_pid.cpp include/turtlebot3_controller/controller_pid.h)
-target_link_libraries(pid_controller_node   ${catkin_LIBRARIES})
+
+add_executable(controller_node src/controller_pid.cpp src/trajectory_executor.cpp include/turtlebot3_controller/controller_pid.h include/turtlebot3_controller/trajectory_executor.h)
+target_link_libraries(controller_node  ${catkin_LIBRARIES})
+

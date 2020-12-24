@@ -1,13 +1,13 @@
 //om
 #pragma once
 
-#include<iostream>
-#include<ros/ros.h>
-#include<geometry_msgs/Twist.h>
-#include<geometry_msgs/Point.h>
-#include<nav_msgs/Odometry.h>
-#include<tf/transform_datatypes.h>  
-#include<cmath>
+#include <iostream>
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Point.h>
+#include <nav_msgs/Odometry.h>
+#include <tf/transform_datatypes.h>  
+#include <cmath>
 #include <memory>
 
 
@@ -96,12 +96,20 @@ class PID : public PID_Base{
 
   public:
 
-    /**
+    // /**
+		//  * \brief      Initialize variables, set goal
+    //  * 
+    //  * \param      goal - defines the goal for the pid controller
+		//  */
+    // PID(geometry_msgs::Point goal);
+
+
+      /**
 		 * \brief      Initialize variables, set goal
      * 
-     * \param      goal - defines the goal for the pid controller
+     * \param      nh - accepts NodeHandle as an argument
 		 */
-    PID(geometry_msgs::Point goal);
+    PID(ros::NodeHandle& nh);
 
 
     /**
@@ -130,7 +138,7 @@ class PID : public PID_Base{
 		 * \brief      Commands robot to move 
      * 
 		 */
-    bool Execute();
+    bool execute();
 
 
   private:
@@ -145,17 +153,17 @@ class PID : public PID_Base{
     std::unique_ptr<PID_Base> _angularPID;
 
 
-    bool _b_checkObstacle{false};
+    bool _b_isCollisionImminent{false};
     bool _b_reachedGoal{false};
 
 
     bool _b_setGoal{false};
     geometry_msgs::Point _goalPosition;
-    double               _goalOrientation;
+    double _goalOrientation;
 
 
     geometry_msgs::Point _currentPosition;
-    double               _currentOrientation;
+    double _currentOrientation;
 
 
     /**
@@ -164,6 +172,7 @@ class PID : public PID_Base{
      * \param      angle - angle in radians
 		 */
     double _wrapAngle(double angle);
+
 
     /**
 		 * \brief      computes distance between two points

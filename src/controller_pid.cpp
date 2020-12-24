@@ -60,7 +60,21 @@ void PID_Base :: _showError(){
 
 
 
-PID :: PID( geometry_msgs::Point goal ) : _goalPosition(goal) , _b_setGoal(true){
+// PID :: PID( geometry_msgs::Point goal ) : _goalPosition(goal) , _b_setGoal(true){
+
+//   std::cout << "PID C'tor \n";
+
+
+//   _linearPID  = std::make_unique<PID_Base>( 0.0849 , 0.14 , 0.0011 );
+//   _angularPID = std::make_unique<PID_Base>( 0.6519  , 0.1929, 0.0013 );
+
+//   _velPublisher   = _nh.advertise<geometry_msgs::Twist> ("/cmd_vel", 1);
+//   _odomSubscriber = _nh.subscribe<nav_msgs::Odometry> ("/odom" , 10, &PID::_odomCallbackFunction, this);
+
+// } 
+
+
+PID :: PID( ros::NodeHandle& nh) : _nh(nh){
 
   std::cout << "PID C'tor \n";
 
@@ -149,7 +163,7 @@ double PID :: norm(geometry_msgs::Point& currPoint, geometry_msgs::Point& goalPo
 }
 
 
-bool PID :: Execute(){
+bool PID :: execute(){
 
   if(!_b_setGoal){
     ROS_ERROR(" Controller Error : Robot Goal not set \n");
@@ -158,19 +172,26 @@ bool PID :: Execute(){
   std::cout << "\n Executing motion to goal: (" << _goalPosition.x << " , " << _goalPosition.y << ")\n";
 
   geometry_msgs::Twist robotVelocity;
-  while( ros::ok() && !_b_checkObstacle && !_b_reachedGoal ){
+  while( ros::ok() && !_b_isCollisionImminent && !_b_reachedGoal ){
 
+    // get linear drive
     robotVelocity.linear.x = _linearPID->getDrive(norm( _currentPosition , _goalPosition ));
+    
+    // get angular drive
     robotVelocity.angular.z = _angularPID->getDrive(_wrapAngle(_goalOrientation - _currentOrientation));
+
 
     // std::cout << "Linear = " << robotVelocity.linear.x;
     // std::cout << " Angular = " << robotVelocity.angular.z  << " Error = " << _goalOrientation - _currentOrientation << "\n";
     _velPublisher.publish(_adjustVelocities(robotVelocity));
     
+
     ros::spinOnce();
     ros::Duration(0.1).sleep();
 
-    // nh_paramserver (get _b_checkObstacle);
+
+    // check if collision detected by obstacle_checker_node
+    _nh.getParam("/hierarchical_planner/is_robot_colliding", _b_isCollisionImminent);
   }
 
   return _b_reachedGoal;
@@ -181,43 +202,3 @@ geometry_msgs::Twist PID :: _adjustVelocities(geometry_msgs::Twist& computedVelo
 
   return computedVelocity;
 }
-
-
-
-
-int main(int argc, char** argv){
-
-  ros::init(argc, argv, "pid_controller_node");
-
-  geometry_msgs::Point goal;
-  goal.x = 6.0;
-  goal.y = 3.0;
-  PID control(goal);
-
-  bool result1 = control.Execute();
-  bool result2, result3;
-  if(result1){
-    goal.x = 3.0;
-    goal.y = 6.0;
-    control.setGoal(goal);
-    result2 = control.Execute();
-  }
-
-  if(result2){
-    goal.x = 0.0;
-    goal.y = 0.0;
-    control.setGoal(goal);
-    result3 = control.Execute();
-  }
-
-
-  if(result1 * result2 * result3)
-    ROS_INFO("Robot travelled successfully \n");
-  else
-    ROS_WARN("Robot travelled unsuccessfully \n");
-
-  
-  return 0;
-}
-
-
