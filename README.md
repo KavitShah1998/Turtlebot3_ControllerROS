@@ -44,7 +44,7 @@ Once Gazebo starts running, open another terminal, enter ito your catkin_ws, sou
 
         cd catkin_ws/
         source ./devel/setup.bash
-        rosrun turtlebot3_controller pid_controller_node
+        rosrun turtlebot3_controller controller_node
 
 
 
